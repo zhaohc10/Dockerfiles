@@ -1,0 +1,85 @@
+//*****************************************************************************************************
+
+
+Cassandra connector for Spark 1.6 is still in development and not released yet.
+
+For Integrating Cassandra with Spark you need at-least following dependencies: -
+
+	Spark-Cassandra connector - Download appropriate version from here
+	Cassandra Core driver - Download appropriate version from here
+	Spark-Cassandra Java library - Download appropriate version from here
+	Other Dependent Jars - jodatime , jodatime-convert, jsr166
+	The mapping of appropriate version of Cassandra Libraries and Spark are mentioned here
+
+Apparently the Cassandra connector for Spark 1.5 is also is in development and you may see some compatibility issues. The most stable release of Cassandra connector is for Spark 1.4 which requires following Jar Files: -
+
+	Spark-Cassandra connector
+	Cassandra Core driver
+	Spark-Cassandra Java library
+	Other Dependent Jars - jodatime , jodatime-convert, jsr166
+	Needless to mention that all these jar files should be configured and available to executors.
+
+
+//*****************************************************************************************************
+on cassandra box create keyspace using cqlsh:
+
+describe keyspaces
+
+describe tables   
+
+
+CREATE KEYSPACE test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
+CREATE TABLE test.kv(key text PRIMARY KEY, value int);
+
+INSERT INTO test.kv(key, value) VALUES ('key1', 1);
+INSERT INTO test.kv(key, value) VALUES ('key2', 2);
+
+
+use test;
+describe tables   
+
+select * from kv;
+
+
+//*****************************************************************************************************
+
+docker run --name spark -it --link ml_cassandra -v /home/autoshift/zhc/cassandra_lib:/usr/local/spark/cassandra_lib sequenceiq/spark:1.5.1 bash
+docker run --name spark -it --link ml_cassandra -v /home/autoshift/zhc/cassandra_lib:/usr/local/spark/cassandra_lib antlypls/spark:1.5.2 bash
+
+docker run --name spark -it --link ml_cassandra -v /home/autoshift/zhc/cassandra_lib:/usr/local/spark/cassandra_lib sequenceiq/spark:1.6.0 bash
+
+
+
+
+cd /usr/local/spark
+cp ./cassandra_lib/*.jar ./lib
+
+spark-shell --jars "lib/cassandra-driver-core-2.2.0-rc3.jar,lib/spark-cassandra-connector_2.10-1.5.0-M2.jar,lib/spark-cassandra-connector-java_2.10-1.5.0-RC1.jar,lib/joda-convert-1.8.1.jar,lib/joda-time-2.1.jar,lib/jsr166e-1.1.0.jar,lib/guava-16.0.1.jar" --conf spark.cassandra.connection.host=ml_cassandra
+
+
+
+spark-shell --packages com.datastax.spark:spark-cassandra-connector_2.10:1.5.0-M2 --conf spark.cassandra.connection.host=ml_cassandra
+
+
+
+
+
+
+import com.datastax.spark.connector._
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.SparkConf
+import org.joda.convert.FromString
+
+
+val rdd = sc.cassandraTable("test", "kv")
+
+println(rdd.count)
+
+println(rdd.map(_.getInt("value")).sum)
+val collection = sc.parallelize(Seq(("key7", 7), ("key8", 8)))
+collection.saveToCassandra("test", "kv", SomeColumns("key", "value"))
+
+
+
+
