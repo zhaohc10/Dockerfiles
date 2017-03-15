@@ -1,0 +1,1 @@
+kubectl patch rc jmeter -p '{"spec":{"template":{"spec":{"containers":[{"name":"jmeter","env":[{"name":"LOADNAME","value":"acmeair-auto-remediator-test"},{"name":"REQSEC","value":"300"},{"name":"NUSER","value":"50"}]}]}}}}' -n app1
