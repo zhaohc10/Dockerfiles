@@ -1,0 +1,29 @@
+  # we will use postgres as one of our sinks.
+  # This configuration allows you to start postgres
+  postgres:
+    image: postgres:9.5-alpine
+    network_mode: host
+    environment:
+      POSTGRES_USER: postgres     # define credentials
+      POSTGRES_PASSWORD: postgres # define credentials
+      POSTGRES_DB: postgres       # define database
+    ports:
+      - 5432:5432                 # Postgres port
+  
+
+  elasticsearch:
+    image: itzg/elasticsearch:2.4.3
+    network_mode: host
+    environment:
+      PLUGINS: appbaseio/dejavu
+      OPTS: -Dindex.number_of_shards=1 -Dindex.number_of_replicas=0
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:4.6.4
+    network_mode: host
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_URL: http://localhost:9200
